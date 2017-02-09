@@ -6,56 +6,49 @@
 
 ![logo](https://raw.githubusercontent.com/opentok/accelerator-core/master/tokbox-logo.png)
 
-# OpenTok Accelerator Core
+# OpenTok Accelerator Core JS
 
+OpenTok's `Accelerator Core JS` provides easy integration for OpenTok libraries. Whether you've already built your application using **OpenTok's libraries** or are just starting to use them, `Accelerator Core JS` helps you implement into your application:
 
-```javascript
-otCore.init(options) =>
-  Multi-Party Audio/Video +
-  Text Chat +
-  Screen Sharing +
-  Annotation +
-  Archiving
-```
+  - Multi-Party Audio/Video Communication
+  - Text Chat
+  - Screen Sharing
+  - Annotation
+  - Archiving
 
-OpenTok Accelerator Core provides a simple way to integrate real-time audio/video into your web application using the OpenTok Platform.  `Core` also integrates with, manages, and provides a single API for the following accelerator packs:
+##Quickstart
+
+ To start using audio/video communication with OpenTok's libraries go to [Using accelerator core](#using-accelerator-core). To implement a more granular and complex management for OpenTok's session you can check [Advanced OpenTok Session Management](#advanced-opentok-session-management). 
+ 
+##Using accelerator core
+
+`OpenTok Accelerator Core JS` provides a simple way to integrate real-time audio/video into your web application using the OpenTok Platform. It also integrates with, manages, and provides a single API for the following accelerator packs:
 
  - [Text Chat](https://www.npmjs.com/package/opentok-text-chat)
  - [Screen Sharing](https://www.npmjs.com/package/opentok-screen-sharing)
  - [Annotation](https://www.npmjs.com/package/opentok-annotation)
  - [Archiving](https://www.npmjs.com/package/opentok-archiving)
 
-`Core` also internally maintains the state of your OpenTok session for you.  Calling `otCore.state()` returns an object containing:
-```javascript
-  streams     => All current streams
-  streamMap   => The map of stream ids to publisher/subscriber ids
-  publishers  => All current publishers
-  subscribers => All current subscribers
-  meta        => The count of all current publishers and subscribers by type
-```
-*See an example of the publisher, subscriber, and meta data [below](#pubSubData).*
+##Sample Applications
 
-Sample Applications
--------------------
 There are two sample applications for `Core` .  The [React](https://github.com/opentok/accelerator-core-js/tree/master/react-sample-app) sample application was built with [Create React App](https://github.com/facebookincubator/create-react-app) and uses [webpack](https://webpack.github.io/) to transpile code.  The other [sample application](https://github.com/opentok/accelerator-core-js/tree/master/vanilla-js-sample-app) is built with vanilla JavaScript.
 
-Installation
-------------
+##Installation
 
-```bash
+**bash**
+```
 $ npm i --save opentok-acc-core
 ```
-webpack/Browserify:
+**webpack/Browserify:**
 ```javascript
 const otCore = require('opentok-acc-core');
 ```
-Browser:
+**Browser:**
 ```javascript
 <script src="path/to/browser/opentok-acc-core.js"></script>
 ```
 
-Configuration
--------
+###Configuration
 `Core` can be configured in a number of ways, but the only required options property is `credentials`, which includes an OpenTok API Key, Session ID, and Token.  These can be obtained from the [developer dashboard](https://tokbox.com/account/#/) or generated with one of the [OpenTok Server SDKs](https://tokbox.com/developer/).
 
 ```javascript
@@ -67,11 +60,17 @@ const options = {
   },
 
 ```
+Other properties are the following.
+
+####Packages
+
 The `packages` property specifies which accelerator packs should be included in the application.  If using a bundler like [`webpack`](https://webpack.github.io/) or [`Browserify`](http://browserify.org/), you'll need to install the additional packages using `npm`.  Otherwise `Core` will look for them in global scope.
 
 ```javascript
   packages: ['textChat', 'screenSharing', 'annotation', 'archiving'],
 ```
+
+####Containers
 The `streamContainers` property is a function that specifies which DOM element should be used as a container for a video stream.  The `controlsContainer` property specifies the element to be used as the container for the local audio/video and accelerator pack controls.  These elements can either be [query selectors](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) or references to DOM elements.  The default containers are specified below.  If these containers do not exist in the DOM, `Core` will be append new elements to the `body`.
 
 ```javascript
@@ -94,7 +93,8 @@ The `streamContainers` property is a function that specifies which DOM element s
   },
   controlsContainer: '#videoControls',
 ```
-The communication properties relate to the multi-party communication provided by `Core`.  `autoSubscribe` dictates whether or not `Core` automatically subscribes to new streams and is set to `true` by default.  `connectionLimit` limits the number of parties that may publish/subscribe to the session.  `callProperties` allows for [customization](https://www.tokbox.com/developer/guides/customize-ui/js/) of the UI.
+####Communication Options
+The `communication` properties relate to the multi-party communication provided by `Core`.  `autoSubscribe` dictates whether or not `Core` automatically subscribes to new streams and is set to `true` by default.  `connectionLimit` limits the number of parties that may publish/subscribe to the session.  `callProperties` allows for [customization](https://www.tokbox.com/developer/guides/customize-ui/js/) of the UI.
 
 ```javascript
   communication: {
@@ -105,6 +105,7 @@ The communication properties relate to the multi-party communication provided by
 ```
 *See more on manually subscribing to streams [below](#autoSubscribe).*
 
+####Accelerator Pack Properties
 The remainder of the options properties are specific to individual accelerator packs.
 ```javascript
   textChat: {
@@ -137,8 +138,7 @@ The remainder of the options properties are specific to individual accelerator p
 
 ```
 
-Usage
---------------
+##Usage
 Initialize `Core`:
 ```javascript
 otCore.init(options);
@@ -147,7 +147,19 @@ Connect to the session:
 ```javascript
 otCore.connect().then(() => this.setState({ connected: true }));
 ```
-The other `Core` API methods include:
+
+`Core` also internally maintains the state of your OpenTok session for you.  Calling `otCore.state()` returns an object containing:
+```javascript
+  streams     => All current streams
+  streamMap   => The map of stream ids to publisher/subscriber ids
+  publishers  => All current publishers
+  subscribers => All current subscribers
+  meta        => The count of all current publishers and subscribers by type
+```
+*See an example of the publisher, subscriber, and meta data [below](#pubSubData).*
+
+##Exploring the code
+Aside from the `connect` method the other `Core` **API methods** include:
 ```javascript
 getAccPack              => Get a reference to an individual accelerator pack
 startCall               => Publish audio/video and subscribe to streams
@@ -169,7 +181,7 @@ subscribe               => Manually subscribe to a stream
 
 Full documentation for the `Core` API can be found [here](https://github.com/opentok/accelerator-core-js/blob/master/API.md).
 
-----------
+###Events
 
 `Core` exposes a number of events, including all OpenTok [session events](https://www.tokbox.com/developer/sdks/js/reference/Session.html#events), which can be accessed using the `on` method:
 ```javascript
@@ -235,3 +247,13 @@ otCore.on('streamCreated', ({ stream }) => {
 UI Styling
 -------
 Default icons and styling for accelerator pack components are provided by `opentok-solutions-css`, which is available as an [npm](https://www.npmjs.com/package/opentok-solutions-css) module or from our [CDN](https://assets.tokbox.com/solutions/css/style.css).  To customize the layout and styling in your application, simply override these CSS rules with your own.
+
+##Using Accelerator Core JS with SDK Wrapper
+
+`Accelerator Core` will cover the use cases for most projects. If you have a special use case, your first course of action should be to open a Github issue. If there is a way that we can add functionality or increase the flexibility of core or one of the accelerator packs while maintaining backwards compatibility, we’re happy to do so. Another option is to use the [OpenTok JS SDK Wrapper](#opentok-js-sdk-wrapper). The `SDK Wrapper` extends the functionality of the [OpenTok JS Client library](https://tokbox.com/developer/sdks/js/)  with the same state management provided by `Accelerator Core`. Some use cases for the SDK Wrapper may be:
+
+- Creating a messaging or signaling layer using OpenTok sessions.
+- Running multiple sessions simultaneously in the same application instance.
+- Managing presence without any audio/video, using OpenTok sessions.
+
+You can also use Accelerator Core and the SDK Wrapper in conjunction with each other. While Core is a singleton, the SDK Wrapper provides a constructor, meaning that multiple instances may be created and used at the same time.
