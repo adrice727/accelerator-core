@@ -2,6 +2,7 @@
 /**
  * Dependencies
  */
+require('babel-polyfill');
 const util = require('./util');
 const internalState = require('./state');
 const accPackEvents = require('./events');
@@ -98,18 +99,19 @@ const on = (event, callback) => {
  */
 const off = (event, callback) => {
   // logAnalytics(logAction.off, logVariation.attempt);
-  if (arguments.lenth === 0) {
+  if (!event && !callback) {
     Object.keys(eventListeners).forEach((eventType) => {
       eventListeners[eventType].clear();
     });
-  }
-  const eventCallbacks = eventListeners[event];
-  if (!eventCallbacks) {
-    // logAnalytics(logAction.off, logVariation.fail);
-    message(`${event} is not a registered event.`);
   } else {
-    eventCallbacks.delete(callback);
-    // logAnalytics(logAction.off, logVariation.success);
+    const eventCallbacks = eventListeners[event];
+    if (!eventCallbacks) {
+      // logAnalytics(logAction.off, logVariation.fail);
+      message(`${event} is not a registered event.`);
+    } else {
+      eventCallbacks.delete(callback);
+      // logAnalytics(logAction.off, logVariation.success);
+    }
   }
 };
 
@@ -234,8 +236,8 @@ const initPackages = () => {
   const options = getOptions();
   /**
    * Try to require a package.  If 'require' is unavailable, look for
-   * the package in global scope.  A switch internalStatement is used because
-   * webpack and Browserify aren't able to resolve require internalStatements
+   * the package in global scope.  A switch ttatement is used because
+   * webpack and Browserify aren't able to resolve require statements
    * that use variable names.
    * @param {String} packageName - The name of the npm package
    * @param {String} globalName - The name of the package if exposed on global/window
@@ -345,9 +347,10 @@ const initPackages = () => {
       }
       case 'textChat': {
         const textChatOptions = {
-          textChatContainer: options.textChat.container,
-          waitingMessage: options.textChat.waitingMessage,
-          sender: { alias: options.textChat.name },
+          textChatContainer: path('textChat.container', options),
+          waitingMessage: path('textChat.waitingMessage', options),
+          sender: { alias: path('textChat.name', options) },
+          alwaysOpen: path('textChat.alwaysOpen', options),
         };
         return Object.assign({}, baseOptions, textChatOptions);
       }
@@ -489,15 +492,18 @@ const getSubscribersForStream = stream => getSession().getSubscribersForStream(s
  * Send a signal using the OpenTok signaling apiKey
  * @param {String} type
  * @param {*} [data]
- * @param {Object} to - An OpenTok connection object
+ * @param {Object} [to] - An OpenTok connection object
  * @returns {Promise} <resolve: empty, reject: Error>
  */
-const signal = (type, signalData, to) =>
+const signal = (type, data, to) =>
   new Promise((resolve, reject) => {
     logAnalytics(logAction.signal, logVariation.attempt);
     const session = getSession();
-    const data = JSON.stringify(signalData);
-    const signalObj = to ? { type, data, to } : { type, data };
+    const signalObj = Object.assign({},
+      type ? { type } : null,
+      data ? { data: JSON.stringify(data) } : null,
+      to ? { to } : null // eslint-disable-line comma-dangle
+    );
     session.signal(signalObj, (error) => {
       if (error) {
         logAnalytics(logAction.signal, logVariation.fail);

@@ -16,7 +16,7 @@ const otCoreOptions = {
     token: config.token,
   },
   // A container can either be a query selector or an HTML Element
-  streamContainers(pubSub, type, data){
+  streamContainers(pubSub, type, data, streamId){
     return {
       publisher: {
         camera: '#cameraPublisherContainer',
@@ -138,8 +138,6 @@ class App extends Component {
   startCall() {
     otCore.startCall()
       .then(({ publisher, publishers, subscribers, meta }) => {
-        console.log(subscribers);
-        console.log(meta);
         this.setState({ publishers, subscribers, meta, active: true });
       }).catch(error => console.log(error));
   }

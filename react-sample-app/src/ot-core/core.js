@@ -1,13 +1,12 @@
 'use strict';
 
-var _arguments = arguments;
-
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 /* global OT */
 /**
  * Dependencies
  */
+require('babel-polyfill');
 var util = require('./util');
 var internalState = require('./state');
 var accPackEvents = require('./events');
@@ -112,18 +111,19 @@ var on = function on(event, callback) {
  */
 var off = function off(event, callback) {
   // logAnalytics(logAction.off, logVariation.attempt);
-  if (_arguments.lenth === 0) {
+  if (!event && !callback) {
     Object.keys(eventListeners).forEach(function (eventType) {
       eventListeners[eventType].clear();
     });
-  }
-  var eventCallbacks = eventListeners[event];
-  if (!eventCallbacks) {
-    // logAnalytics(logAction.off, logVariation.fail);
-    message(event + ' is not a registered event.');
   } else {
-    eventCallbacks.delete(callback);
-    // logAnalytics(logAction.off, logVariation.success);
+    var eventCallbacks = eventListeners[event];
+    if (!eventCallbacks) {
+      // logAnalytics(logAction.off, logVariation.fail);
+      message(event + ' is not a registered event.');
+    } else {
+      eventCallbacks.delete(callback);
+      // logAnalytics(logAction.off, logVariation.success);
+    }
   }
 };
 
@@ -258,8 +258,8 @@ var initPackages = function initPackages() {
   var options = getOptions();
   /**
    * Try to require a package.  If 'require' is unavailable, look for
-   * the package in global scope.  A switch internalStatement is used because
-   * webpack and Browserify aren't able to resolve require internalStatements
+   * the package in global scope.  A switch ttatement is used because
+   * webpack and Browserify aren't able to resolve require statements
    * that use variable names.
    * @param {String} packageName - The name of the npm package
    * @param {String} globalName - The name of the package if exposed on global/window
@@ -373,9 +373,10 @@ var initPackages = function initPackages() {
       case 'textChat':
         {
           var textChatOptions = {
-            textChatContainer: options.textChat.container,
-            waitingMessage: options.textChat.waitingMessage,
-            sender: { alias: options.textChat.name }
+            textChatContainer: path('textChat.container', options),
+            waitingMessage: path('textChat.waitingMessage', options),
+            sender: { alias: path('textChat.name', options) },
+            alwaysOpen: path('textChat.alwaysOpen', options)
           };
           return Object.assign({}, baseOptions, textChatOptions);
         }
@@ -530,15 +531,15 @@ var getSubscribersForStream = function getSubscribersForStream(stream) {
  * Send a signal using the OpenTok signaling apiKey
  * @param {String} type
  * @param {*} [data]
- * @param {Object} to - An OpenTok connection object
+ * @param {Object} [to] - An OpenTok connection object
  * @returns {Promise} <resolve: empty, reject: Error>
  */
-var signal = function signal(type, signalData, to) {
+var signal = function signal(type, data, to) {
   return new Promise(function (resolve, reject) {
     logAnalytics(logAction.signal, logVariation.attempt);
     var session = getSession();
-    var data = JSON.stringify(signalData);
-    var signalObj = to ? { type: type, data: data, to: to } : { type: type, data: data };
+    var signalObj = Object.assign({}, type ? { type: type } : null, data ? { data: JSON.stringify(data) } : null, to ? { to: to } : null // eslint-disable-line comma-dangle
+    );
     session.signal(signalObj, function (error) {
       if (error) {
         logAnalytics(logAction.signal, logVariation.fail);
